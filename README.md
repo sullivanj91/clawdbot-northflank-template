@@ -46,7 +46,7 @@ Then:
 ## Local smoke test
 
 ```bash
-docker build -t openclaw-railway-template .
+docker build -t openclaw-northflank-template .
 
 docker run --rm -p 8080:8080 \
   -e PORT=8080 \
@@ -54,7 +54,7 @@ docker run --rm -p 8080:8080 \
   -e OPENCLAW_STATE_DIR=/data/.openclaw \
   -e OPENCLAW_WORKSPACE_DIR=/data/workspace \
   -v $(pwd)/.tmpdata:/data \
-  openclaw-railway-template
+  openclaw-northflank-template
 
 # open http://localhost:8080/setup (password: test)
 ```
