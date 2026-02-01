@@ -42,10 +42,23 @@ RUN pnpm ui:install && pnpm ui:build
 FROM node:22-bookworm
 ENV NODE_ENV=production
 
+# Install common tooling needed by many OpenClaw skills (esp. github + coding-agent)
+# - sudo: some skill installers assume it exists
+# - gh: required by the github skill
+# - git/ssh: required for cloning/pushing repos
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
+    sudo \
+    curl \
+    git \
+    openssh-client \
+    gh \
   && rm -rf /var/lib/apt/lists/*
+
+# Provide a coding agent binary (`pi`) so the coding-agent skill is eligible.
+# (Codex OAuth is handled by OpenClaw model auth; this just supplies an interactive agent CLI.)
+RUN npm install -g @mariozechner/pi-coding-agent
 
 WORKDIR /app
 
