@@ -54,6 +54,7 @@ RUN apt-get update \
     git \
     openssh-client \
     gh \
+    jq \
   && rm -rf /var/lib/apt/lists/*
 
 # Provide a coding agent binary (`pi`) so the coding-agent skill is eligible.
