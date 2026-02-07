@@ -96,13 +96,13 @@ RUN printf '%s\n' \
 
 # Preinstall common skill dependencies so they work out-of-the-box in the container.
 # NOTE: `imsg` is macOS-only and is intentionally not installed in this Linux image.
+# NOTE: `summarize` is arm64-only via Homebrew and cannot be installed on linux/amd64.
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     golang-go \
   && rm -rf /var/lib/apt/lists/* \
   && (HOMEBREW_NO_AUTO_UPDATE=1 brew tap steipete/tap || true) \
   && HOMEBREW_NO_AUTO_UPDATE=1 brew install \
-      steipete/tap/summarize \
       steipete/tap/gogcli \
       steipete/tap/goplaces \
       openai-whisper \
