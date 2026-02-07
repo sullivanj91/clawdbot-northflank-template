@@ -107,12 +107,13 @@ RUN set -eux; \
     golang-go; \
   rm -rf /var/lib/apt/lists/*; \
   (HOMEBREW_NO_AUTO_UPDATE=1 brew tap steipete/tap || true); \
+  (HOMEBREW_NO_AUTO_UPDATE=1 brew tap Hyaxia/tap || true); \
   HOMEBREW_NO_AUTO_UPDATE=1 brew install \
     steipete/tap/gogcli \
     steipete/tap/goplaces \
-    openai-whisper; \
-  npm install -g clawhub mcporter; \
-  GOBIN=/usr/local/bin go install github.com/Hyaxia/blogwatcher/cmd/blogwatcher@latest
+    openai-whisper \
+    Hyaxia/tap/blogwatcher; \
+  npm install -g clawhub mcporter
 
 # Provide a coding agent binary (`pi`) so the coding-agent skill is eligible.
 # (Codex OAuth is handled by OpenClaw model auth; this just supplies an interactive agent CLI.)
