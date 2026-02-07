@@ -97,17 +97,22 @@ RUN printf '%s\n' \
 # Preinstall common skill dependencies so they work out-of-the-box in the container.
 # NOTE: `imsg` is macOS-only and is intentionally not installed in this Linux image.
 # NOTE: `summarize` is arm64-only via Homebrew and cannot be installed on linux/amd64.
-RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    golang-go \
-  && rm -rf /var/lib/apt/lists/* \
-  && (HOMEBREW_NO_AUTO_UPDATE=1 brew tap steipete/tap || true) \
-  && HOMEBREW_NO_AUTO_UPDATE=1 brew install \
-      steipete/tap/gogcli \
-      steipete/tap/goplaces \
-      openai-whisper \
-  && npm install -g clawhub mcporter \
-  && GOBIN=/usr/local/bin go install github.com/Hyaxia/blogwatcher/cmd/blogwatcher@latest
+RUN set -eux; \
+  # Work around occasional overlayfs/BuildKit I/O errors writing /var/lib/apt/extended_states.
+  rm -f /var/lib/apt/extended_states || true; \
+  apt-get update; \
+  DEBIAN_FRONTEND=noninteractive apt-get \
+    -o Dir::State::extended_states=/tmp/apt-extended_states \
+    install -y --no-install-recommends \
+    golang-go; \
+  rm -rf /var/lib/apt/lists/*; \
+  (HOMEBREW_NO_AUTO_UPDATE=1 brew tap steipete/tap || true); \
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install \
+    steipete/tap/gogcli \
+    steipete/tap/goplaces \
+    openai-whisper; \
+  npm install -g clawhub mcporter; \
+  GOBIN=/usr/local/bin go install github.com/Hyaxia/blogwatcher/cmd/blogwatcher@latest
 
 # Provide a coding agent binary (`pi`) so the coding-agent skill is eligible.
 # (Codex OAuth is handled by OpenClaw model auth; this just supplies an interactive agent CLI.)
