@@ -40,7 +40,16 @@ RUN pnpm ui:install && pnpm ui:build
 
 # Runtime image
 FROM node:22-bookworm
-ENV NODE_ENV=production
+
+# Persist tool configs (OAuth tokens, CLIs that write to ~/.config, etc.) on the /data volume.
+# Northflank mounts a persistent volume at /data for this template.
+ENV HOME=/data/home \
+    XDG_CONFIG_HOME=/data/config \
+    XDG_CACHE_HOME=/data/cache \
+    NODE_ENV=production
+
+RUN mkdir -p /data/home /data/config /data/cache \
+  && chmod 700 /data/home /data/config /data/cache
 
 # Install common tooling needed by many OpenClaw skills (esp. github + coding-agent)
 # - sudo: some skill installers assume it exists
