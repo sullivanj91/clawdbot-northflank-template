@@ -104,7 +104,7 @@ RUN set -eux; \
   DEBIAN_FRONTEND=noninteractive apt-get \
     -o Dir::State::extended_states=/tmp/apt-extended_states \
     install -y --no-install-recommends \
-    golang-go; \
+    ca-certificates; \
   rm -rf /var/lib/apt/lists/*; \
   (HOMEBREW_NO_AUTO_UPDATE=1 brew tap steipete/tap || true); \
   HOMEBREW_NO_AUTO_UPDATE=1 brew install \
@@ -112,7 +112,12 @@ RUN set -eux; \
     steipete/tap/goplaces \
     openai-whisper; \
   npm install -g clawhub mcporter; \
-  GOBIN=/usr/local/bin go install github.com/Hyaxia/blogwatcher/cmd/blogwatcher@latest
+  # blogwatcher: upstream go.mod declares `go 1.24.0` (invalid for current Go tooling). Install from release binary instead.
+  curl -fsSL -o /tmp/blogwatcher.tgz \
+    https://github.com/Hyaxia/blogwatcher/releases/download/v0.0.2/blogwatcher_0.0.2_linux_amd64.tar.gz; \
+  tar -xzf /tmp/blogwatcher.tgz -C /tmp; \
+  install -m 0755 /tmp/blogwatcher /usr/local/bin/blogwatcher; \
+  rm -f /tmp/blogwatcher.tgz /tmp/blogwatcher
 
 # Provide a coding agent binary (`pi`) so the coding-agent skill is eligible.
 # (Codex OAuth is handled by OpenClaw model auth; this just supplies an interactive agent CLI.)
