@@ -76,6 +76,23 @@ ENV HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew" \
     PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}" \
     INFOPATH="/home/linuxbrew/.linuxbrew/share/info:${INFOPATH}"
 
+# Homebrew refuses to run as root. OpenClaw commonly runs as root in containers.
+# Put a wrapper earlier on PATH so `brew ...` transparently runs as the linuxbrew user.
+RUN printf '%s\n' \
+  '#!/usr/bin/env bash' \
+  'set -euo pipefail' \
+  'BREW_REAL="/home/linuxbrew/.linuxbrew/bin/brew"' \
+  'if [ "${EUID:-$(id -u)}" -eq 0 ]; then' \
+  '  # Safely forward args into a single `su -c` string.' \
+  '  args=$(printf "%q " "$@")' \
+  '  cmd="eval \"$(${BREW_REAL} shellenv)\"; ${BREW_REAL} ${args}"' \
+  '  exec su - linuxbrew -c "$cmd"' \
+  'else' \
+  '  exec "${BREW_REAL}" "$@"' \
+  'fi' \
+  > /usr/local/bin/brew \
+  && chmod +x /usr/local/bin/brew
+
 # Provide a coding agent binary (`pi`) so the coding-agent skill is eligible.
 # (Codex OAuth is handled by OpenClaw model auth; this just supplies an interactive agent CLI.)
 RUN npm install -g @mariozechner/pi-coding-agent
