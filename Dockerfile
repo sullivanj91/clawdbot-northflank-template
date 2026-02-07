@@ -96,18 +96,29 @@ RUN printf '%s\n' \
 
 # Preinstall common skill dependencies so they work out-of-the-box in the container.
 # NOTE: `imsg` is macOS-only and is intentionally not installed in this Linux image.
+#
+# Keep this in multiple RUN steps for clearer build logs (Northflank truncates long failures).
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     golang-go \
-  && rm -rf /var/lib/apt/lists/* \
-  && (HOMEBREW_NO_AUTO_UPDATE=1 brew tap steipete/tap || true) \
-  && HOMEBREW_NO_AUTO_UPDATE=1 brew install \
-      steipete/tap/summarize \
-      steipete/tap/gogcli \
-      steipete/tap/goplaces \
-      openai-whisper \
-  && npm install -g clawhub mcporter \
-  && GOBIN=/usr/local/bin go install github.com/Hyaxia/blogwatcher/cmd/blogwatcher@latest
+    python3 \
+    python3-pip \
+    ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
+
+# Brew-installed CLIs (run as linuxbrew user explicitly, not via root wrapper).
+RUN set -eux; \
+  su - linuxbrew -c 'HOMEBREW_NO_AUTO_UPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew tap steipete/tap || true'; \
+  su - linuxbrew -c 'HOMEBREW_NO_AUTO_UPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install steipete/tap/summarize steipete/tap/gogcli steipete/tap/goplaces'
+
+# Whisper CLI (pip) is more reliable than brew in minimal Linux containers.
+RUN pip3 install --no-cache-dir -U openai-whisper
+
+# Node CLIs
+RUN npm install -g clawhub mcporter
+
+# Go CLIs
+RUN GOBIN=/usr/local/bin go install github.com/Hyaxia/blogwatcher/cmd/blogwatcher@latest
 
 # Provide a coding agent binary (`pi`) so the coding-agent skill is eligible.
 # (Codex OAuth is handled by OpenClaw model auth; this just supplies an interactive agent CLI.)
