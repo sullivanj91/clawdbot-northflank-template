@@ -73,7 +73,8 @@ RUN useradd -m -s /bin/bash linuxbrew \
 ENV HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew" \
     HOMEBREW_CELLAR="/home/linuxbrew/.linuxbrew/Cellar" \
     HOMEBREW_REPOSITORY="/home/linuxbrew/.linuxbrew/Homebrew" \
-    PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}" \
+    # Keep /usr/local/bin ahead of Linuxbrew so our /usr/local/bin/brew root-wrapper wins.
+    PATH="${PATH}:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin" \
     INFOPATH="/home/linuxbrew/.linuxbrew/share/info:${INFOPATH}"
 
 # Homebrew refuses to run as root. OpenClaw commonly runs as root in containers.
