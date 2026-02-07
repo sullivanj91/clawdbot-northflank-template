@@ -46,6 +46,7 @@ ENV NODE_ENV=production
 # - sudo: some skill installers assume it exists
 # - gh: required by the github skill
 # - git/ssh: required for cloning/pushing repos
+# - build-essential/file/procps: common Homebrew + build deps
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -55,7 +56,25 @@ RUN apt-get update \
     openssh-client \
     gh \
     jq \
+    build-essential \
+    file \
+    procps \
   && rm -rf /var/lib/apt/lists/*
+
+# Install Homebrew (Linuxbrew) for runtime skill installers.
+# Homebrew refuses to install as root, so we install it as an unprivileged user.
+RUN useradd -m -s /bin/bash linuxbrew \
+  && curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/brew-install.sh \
+  && chown linuxbrew:linuxbrew /tmp/brew-install.sh \
+  && su - linuxbrew -c 'NONINTERACTIVE=1 /bin/bash /tmp/brew-install.sh' \
+  && rm -f /tmp/brew-install.sh
+
+# Bake the Homebrew shellenv into the image so `brew` works without extra login shell setup.
+ENV HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew" \
+    HOMEBREW_CELLAR="/home/linuxbrew/.linuxbrew/Cellar" \
+    HOMEBREW_REPOSITORY="/home/linuxbrew/.linuxbrew/Homebrew" \
+    PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}" \
+    INFOPATH="/home/linuxbrew/.linuxbrew/share/info:${INFOPATH}"
 
 # Provide a coding agent binary (`pi`) so the coding-agent skill is eligible.
 # (Codex OAuth is handled by OpenClaw model auth; this just supplies an interactive agent CLI.)
